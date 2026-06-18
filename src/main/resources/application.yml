@@ -1,0 +1,6 @@
+spring:
+  application:
+    name: bookmystay-app
+
+  profiles:
+    active: ${APP_PROFILE:dev}
