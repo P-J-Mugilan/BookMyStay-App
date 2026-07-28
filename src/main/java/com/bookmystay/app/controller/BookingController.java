@@ -66,4 +66,16 @@ public class BookingController {
         );
     }
 
+    @PostMapping("/confirm-next")
+    public ResponseEntity<ApiResponse<BookingResponse>> confirmNextBooking() {
+        BookingResponse response = bookingService.confirmNextBooking();
+        return ResponseEntity.ok(
+                ApiResponse.<BookingResponse>builder()
+                        .success(true)
+                        .message("Next booking request confirmed and room allocated successfully.")
+                        .data(response)
+                        .build()
+        );
+    }
+
 }

@@ -2,9 +2,12 @@ package com.bookmystay.app.service.impl;
 
 import com.bookmystay.app.dto.reponse.RoomTypeResponse;
 import com.bookmystay.app.dto.request.RoomTypeRequest;
+import com.bookmystay.app.entity.Room;
 import com.bookmystay.app.entity.RoomType;
+import com.bookmystay.app.enums.RoomStatus;
 import com.bookmystay.app.exception.DuplicateResourceException;
 import com.bookmystay.app.exception.ResourceNotFoundException;
+import com.bookmystay.app.repository.RoomRepository;
 import com.bookmystay.app.repository.RoomTypeRepository;
 import com.bookmystay.app.service.RoomTypeService;
 import jakarta.annotation.PostConstruct;
@@ -22,6 +25,7 @@ import java.util.stream.Collectors;
 public class RoomTypeServiceImpl implements RoomTypeService {
 
     private final RoomTypeRepository roomTypeRepository;
+    private final RoomRepository roomRepository;
 
     // In-memory data structures for fast O(1) lookups as per UC requirements
     private final ConcurrentHashMap<String, Integer> roomInventory = new ConcurrentHashMap<>();
@@ -48,7 +52,18 @@ public class RoomTypeServiceImpl implements RoomTypeService {
                 .pricePerNight(pricePerNight)
                 .description(description)
                 .build();
-        roomTypeRepository.save(roomType);
+        RoomType saved = roomTypeRepository.save(roomType);
+
+        // Generate physical rooms
+        int roomPrefix = name.equalsIgnoreCase("Single") ? 100 : (name.equalsIgnoreCase("Double") ? 200 : 300);
+        for (int i = 1; i <= availableRooms; i++) {
+            Room room = Room.builder()
+                    .roomNumber(String.valueOf(roomPrefix + i))
+                    .roomType(saved)
+                    .status(RoomStatus.AVAILABLE)
+                    .build();
+            roomRepository.save(room);
+        }
     }
 
     private void syncInMemoryCache() {

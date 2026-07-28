@@ -124,4 +124,34 @@ class BookingServiceTests {
 
         assertThrows(ResourceNotFoundException.class, () -> bookingService.submitBookingRequest(request));
     }
+
+    @Test
+    void testConfirmBookingSuccess() {
+        CreateBookingRequest request = new CreateBookingRequest(
+                "Bob",
+                singleRoomTypeId,
+                LocalDate.now().plusDays(1),
+                LocalDate.now().plusDays(3),
+                1
+        );
+
+        BookingResponse queued = bookingService.submitBookingRequest(request);
+        assertEquals("PENDING", queued.getStatus());
+
+        BookingResponse confirmed = bookingService.confirmNextBooking();
+
+        assertNotNull(confirmed);
+        assertEquals(queued.getId(), confirmed.getId());
+        assertEquals("CONFIRMED", confirmed.getStatus());
+        assertNotNull(confirmed.getAllocatedRoomNumber());
+
+        // Verify inventory count decremented in cache
+        RoomTypeResponse updatedRoomType = roomTypeService.getRoomTypeById(singleRoomTypeId);
+        assertEquals(9, updatedRoomType.getAvailableRooms()); // 10 original - 1
+    }
+
+    @Test
+    void testConfirmBookingEmptyQueueThrowsException() {
+        assertThrows(BusinessException.class, () -> bookingService.confirmNextBooking());
+    }
 }

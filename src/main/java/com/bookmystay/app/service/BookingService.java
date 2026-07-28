@@ -13,4 +13,6 @@ public interface BookingService {
 
     int getQueuePosition(Long bookingId);
 
+    BookingResponse confirmNextBooking();
+
 }
