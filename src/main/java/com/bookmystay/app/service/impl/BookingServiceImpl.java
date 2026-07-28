@@ -174,6 +174,59 @@ public class BookingServiceImpl implements BookingService {
         return allocatedRooms;
     }
 
+    @Override
+    @Transactional
+    public synchronized BookingResponse cancelBooking(Long bookingId) {
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new ResourceNotFoundException("Booking not found with id: " + bookingId));
+
+        if (booking.getStatus() == BookingStatus.CANCELLED) {
+            throw new BusinessException("Booking is already cancelled.");
+        }
+
+        // If it was PENDING in queue, remove it from queue
+        if (booking.getStatus() == BookingStatus.PENDING) {
+            bookingQueue.remove(bookingId);
+        }
+
+        // If it was CONFIRMED and room was allocated, free the room and increment inventory
+        if (booking.getStatus() == BookingStatus.CONFIRMED && booking.getAllocatedRoomNumber() != null) {
+            String roomNum = booking.getAllocatedRoomNumber();
+            RoomType roomType = booking.getRoomType();
+
+            // Find physical room
+            List<Room> occupiedRooms = roomRepository.findByRoomTypeAndStatus(roomType, RoomStatus.OCCUPIED);
+            for (Room r : occupiedRooms) {
+                if (r.getRoomNumber().equalsIgnoreCase(roomNum)) {
+                    r.setStatus(RoomStatus.AVAILABLE);
+                    roomRepository.save(r);
+                    break;
+                }
+            }
+
+            // Increment room availability count
+            int newAvailability = roomType.getAvailableRooms() + 1;
+            roomType.setAvailableRooms(newAvailability);
+            roomTypeRepository.save(roomType);
+
+            // Synchronize O(1) caches
+            bookedRoomIds.remove(roomNum);
+            Set<String> allocated = allocatedRooms.get(roomType.getName().toLowerCase());
+            if (allocated != null) {
+                allocated.remove(roomNum);
+            }
+
+            if (roomTypeService instanceof RoomTypeServiceImpl) {
+                ((RoomTypeServiceImpl) roomTypeService).updateCachedInventory(roomType.getName(), newAvailability);
+            }
+        }
+
+        booking.setStatus(BookingStatus.CANCELLED);
+        Booking saved = bookingRepository.save(booking);
+
+        return mapToResponse(saved);
+    }
+
     private BookingResponse mapToResponse(Booking booking) {
         List<String> serviceNames = new ArrayList<>();
         if (bookingAddonRepository != null) {

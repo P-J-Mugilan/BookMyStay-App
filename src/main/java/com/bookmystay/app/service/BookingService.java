@@ -15,4 +15,6 @@ public interface BookingService {
 
     BookingResponse confirmNextBooking();
 
+    BookingResponse cancelBooking(Long bookingId);
+
 }

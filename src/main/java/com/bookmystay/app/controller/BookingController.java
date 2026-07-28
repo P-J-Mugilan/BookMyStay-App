@@ -78,4 +78,16 @@ public class BookingController {
         );
     }
 
+    @PutMapping("/{id}/cancel")
+    public ResponseEntity<ApiResponse<BookingResponse>> cancelBooking(@PathVariable Long id) {
+        BookingResponse response = bookingService.cancelBooking(id);
+        return ResponseEntity.ok(
+                ApiResponse.<BookingResponse>builder()
+                        .success(true)
+                        .message("Booking cancelled successfully.")
+                        .data(response)
+                        .build()
+        );
+    }
+
 }
