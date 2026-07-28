@@ -1,6 +1,6 @@
 spring:
   application:
-    name: bookmystay-app
+    name: airline-app
 
   profiles:
     active: ${APP_PROFILE:dev}

@@ -12,10 +12,10 @@
 		<relativePath/>
 	</parent>
 
-	<groupId>com.bookmystay</groupId>
+	<groupId>com.airline</groupId>
 	<artifactId>app</artifactId>
 	<version>1.0.0</version>
-	<name>bookmystay-app</name>
+	<name>airline-app</name>
 
 	<properties>
 		<java.version>21</java.version>
@@ -67,6 +67,13 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<!-- H2 Database for Testing -->
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
 			<scope>test</scope>
 		</dependency>
 

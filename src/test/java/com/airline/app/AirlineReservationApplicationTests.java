@@ -1,13 +1,13 @@
-package com.bookmystay.app;
+package com.airline.app;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class BookmystayAppApplicationTests {
+class AirlineReservationApplicationTests {
 
-	@Test
-	void contextLoads() {
-	}
+    @Test
+    void contextLoads() {
+    }
 
 }
