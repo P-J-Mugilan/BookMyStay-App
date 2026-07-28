@@ -11,6 +11,8 @@ public interface RoomTypeService {
 
     List<RoomTypeResponse> getAllRoomTypes();
 
+    List<RoomTypeResponse> getAvailableRoomTypes();
+
     RoomTypeResponse getRoomTypeById(Long id);
 
     RoomTypeResponse updateRoomType(Long id, RoomTypeRequest request);

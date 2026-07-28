@@ -4,6 +4,8 @@ import com.bookmystay.app.dto.reponse.RoomTypeResponse;
 import com.bookmystay.app.dto.request.RoomTypeRequest;
 import com.bookmystay.app.exception.DuplicateResourceException;
 import com.bookmystay.app.exception.ResourceNotFoundException;
+import com.bookmystay.app.service.impl.RoomTypeServiceImpl;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -20,6 +22,13 @@ class RoomTypeServiceTests {
 
     @Autowired
     private RoomTypeService roomTypeService;
+
+    @BeforeEach
+    void setUp() {
+        if (roomTypeService instanceof RoomTypeServiceImpl) {
+            ((RoomTypeServiceImpl) roomTypeService).initializeDefaultInventory();
+        }
+    }
 
     @Test
     void testDefaultRoomTypesInitialized() {
@@ -95,5 +104,29 @@ class RoomTypeServiceTests {
 
         roomTypeService.deleteRoomType(created.getId());
         assertThrows(ResourceNotFoundException.class, () -> roomTypeService.getRoomTypeById(created.getId()));
+    }
+
+    @Test
+    void testGetAvailableRoomTypes() {
+        List<RoomTypeResponse> roomTypes = roomTypeService.getAllRoomTypes();
+        RoomTypeResponse suite = roomTypes.stream()
+                .filter(rt -> rt.getName().equalsIgnoreCase("Suite"))
+                .findFirst()
+                .orElseThrow();
+
+        // Update Suite available rooms to 0
+        RoomTypeRequest updateRequest = new RoomTypeRequest("Suite", 0, suite.getPricePerNight(), "No suites available");
+        roomTypeService.updateRoomType(suite.getId(), updateRequest);
+
+        // Search available rooms
+        List<RoomTypeResponse> available = roomTypeService.getAvailableRoomTypes();
+
+        // Suite should not be in the list because availability is 0
+        boolean hasSuite = available.stream().anyMatch(rt -> rt.getName().equalsIgnoreCase("Suite"));
+        assertFalse(hasSuite);
+
+        // Single should still be in the list
+        boolean hasSingle = available.stream().anyMatch(rt -> rt.getName().equalsIgnoreCase("Single"));
+        assertTrue(hasSingle);
     }
 }

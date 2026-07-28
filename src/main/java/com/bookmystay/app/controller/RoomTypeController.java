@@ -45,6 +45,18 @@ public class RoomTypeController {
         );
     }
 
+    @GetMapping("/available")
+    public ResponseEntity<ApiResponse<List<RoomTypeResponse>>> getAvailableRoomTypes() {
+        List<RoomTypeResponse> response = roomTypeService.getAvailableRoomTypes();
+        return ResponseEntity.ok(
+                ApiResponse.<List<RoomTypeResponse>>builder()
+                        .success(true)
+                        .message("Available room types retrieved successfully.")
+                        .data(response)
+                        .build()
+        );
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<RoomTypeResponse>> getRoomTypeById(@PathVariable Long id) {
         RoomTypeResponse response = roomTypeService.getRoomTypeById(id);

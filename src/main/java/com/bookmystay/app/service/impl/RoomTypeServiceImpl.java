@@ -94,6 +94,14 @@ public class RoomTypeServiceImpl implements RoomTypeService {
     }
 
     @Override
+    public List<RoomTypeResponse> getAvailableRoomTypes() {
+        return roomTypeRepository.findAll().stream()
+                .filter(rt -> getCachedInventory(rt.getName()) > 0)
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public RoomTypeResponse getRoomTypeById(Long id) {
         RoomType roomType = roomTypeRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Room type not found with id: " + id));
