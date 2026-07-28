@@ -21,5 +21,6 @@ public class BookingResponse {
     private String status;
     private BigDecimal totalCost;
     private String allocatedRoomNumber;
+    private java.util.List<String> services;
 
 }

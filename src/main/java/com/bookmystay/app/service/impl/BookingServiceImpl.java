@@ -10,6 +10,7 @@ import com.bookmystay.app.enums.RoomStatus;
 import com.bookmystay.app.exception.BusinessException;
 import com.bookmystay.app.exception.ResourceNotFoundException;
 import com.bookmystay.app.repository.BookingRepository;
+import com.bookmystay.app.repository.BookingAddonRepository;
 import com.bookmystay.app.repository.RoomRepository;
 import com.bookmystay.app.repository.RoomTypeRepository;
 import com.bookmystay.app.service.BookingService;
@@ -27,6 +28,7 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -36,6 +38,7 @@ public class BookingServiceImpl implements BookingService {
     private final RoomTypeRepository roomTypeRepository;
     private final RoomRepository roomRepository;
     private final RoomTypeService roomTypeService;
+    private final BookingAddonRepository bookingAddonRepository;
 
     // Thread-safe in-memory FIFO queue as per UC3 data structure requirements
     private final Queue<Long> bookingQueue = new ConcurrentLinkedQueue<>();
@@ -172,6 +175,13 @@ public class BookingServiceImpl implements BookingService {
     }
 
     private BookingResponse mapToResponse(Booking booking) {
+        List<String> serviceNames = new ArrayList<>();
+        if (bookingAddonRepository != null) {
+            serviceNames = bookingAddonRepository.findByBookingId(booking.getId()).stream()
+                    .map(addon -> addon.getHotelService().getName())
+                    .collect(Collectors.toList());
+        }
+
         return BookingResponse.builder()
                 .id(booking.getId())
                 .guestName(booking.getGuestName())
@@ -182,6 +192,7 @@ public class BookingServiceImpl implements BookingService {
                 .status(booking.getStatus().name())
                 .totalCost(booking.getTotalCost())
                 .allocatedRoomNumber(booking.getAllocatedRoomNumber())
+                .services(serviceNames)
                 .build();
     }
 }
